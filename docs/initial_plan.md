@@ -212,6 +212,7 @@ Definition of Done for a feature:
 
 - [ ] Confirm scope: what exactly counts as a “block” in your Logseq page files (bullet-only vs any non-empty line). (Properties attach to previous block)
 - [ ] Decide how to represent *ordering*: keep raw line order + keep properties as both (a) list and (b) map.
+- [ ] Next: parse wiki page refs and standard URLs inside property values (e.g. `tags:: #[[Project]] #mvp`, `link:: https://...`).
 - [x] Define AST v1 schema in `logseq-core` (Document / Block / Inline / CodeBlock / Heading / Property / Marker).
 - [x] Add fixtures (`fixtures/*.md`) + golden JSON outputs (`fixtures/*.json`). (first golden snapshot added)
 - [x] Implement block tree parser (indentation + bullets + children).
