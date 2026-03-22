@@ -15,6 +15,16 @@ fn golden_code_fence_distinction() {
     golden("code_fence_distinction");
 }
 
+#[test]
+fn golden_properties_example() {
+    golden("properties_example");
+}
+
+#[test]
+fn golden_property_urls() {
+    golden("property_urls");
+}
+
 fn golden(name: &str) {
     // Tests run with CWD at the crate, so walk up to workspace root.
     let md = std::fs::read_to_string(Path::new(&format!("../../fixtures/{name}.md")))

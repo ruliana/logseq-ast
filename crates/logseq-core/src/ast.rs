@@ -41,7 +41,17 @@ pub struct Block {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Property {
     pub key: String,
+
+    /// Raw value string as it appeared in the file.
     pub value: String,
+
+    /// Parsed representation of the value.
+    ///
+    /// This lets us capture wiki refs `[[Page]]`, tags `#tag`, block refs, and
+    /// bare URLs inside property values.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub value_ast: Vec<Inline>,
+
     pub line: usize,
 }
 

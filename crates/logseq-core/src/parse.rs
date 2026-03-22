@@ -1,4 +1,5 @@
 use crate::ast::{Block, Document, Inline, Marker, Property};
+use crate::property_value::parse_property_value;
 use crate::tokenize::tokenize_inline;
 
 #[derive(Debug, thiserror::Error)]
@@ -50,9 +51,11 @@ pub fn parse(input: &str) -> Result<Document, ParseError> {
 
         // Property lines always attach to the previous block.
         if let Some((key, value)) = parse_property_line(trimmed) {
+            let value_ast = parse_property_value(value);
             let prop = Property {
                 key: key.to_string(),
                 value: value.to_string(),
+                value_ast,
                 line: line_no,
             };
 

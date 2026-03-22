@@ -213,7 +213,7 @@ Definition of Done for a feature:
 - [x] Confirm scope: blocks are **bullet list items only**; empty lines are **not blocks**, but are preserved in the AST (currently via `blank_lines`). Non-bullet lines are continuation text of the previous block. (Properties attach to previous block)
 - [ ] Decide how to represent *ordering*: keep raw line order + keep properties as both (a) list and (b) map.
 - [ ] Update AST + parser to enforce bullet-only blocks and to emit explicit `BlankLine` nodes (preserve line numbers) so spacing is not lost.
-- [ ] Next: parse wiki page refs and standard URLs inside property values (e.g. `tags:: #[[Project]] #mvp`, `link:: https://...`).
+- [x] Next: parse wiki page refs and standard URLs inside property values (e.g. `tags:: #[[Project]] #mvp`, `link:: https://...`).
 - [x] Define AST v1 schema in `logseq-core` (Document / Block / Inline / CodeBlock / Heading / Property / Marker).
 - [x] Add fixtures (`fixtures/*.md`) + golden JSON outputs (`fixtures/*.json`). (first golden snapshot added)
 - [x] Implement block tree parser (indentation + bullets + children).

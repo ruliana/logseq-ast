@@ -1,0 +1,110 @@
+{
+  "version": 1,
+  "blocks": [
+    {
+      "id": "11111111-2222-3333-4444-555555555555",
+      "properties": [
+        {
+          "key": "id",
+          "value": "11111111-2222-3333-4444-555555555555",
+          "value_ast": [
+            {
+              "type": "text",
+              "value": "11111111-2222-3333-4444-555555555555"
+            }
+          ],
+          "line": 2
+        },
+        {
+          "key": "status",
+          "value": "draft",
+          "value_ast": [
+            {
+              "type": "text",
+              "value": "draft"
+            }
+          ],
+          "line": 3
+        },
+        {
+          "key": "tags",
+          "value": "#[[project]] #mvp",
+          "value_ast": [
+            {
+              "type": "tag",
+              "title": "project",
+              "original": "project"
+            },
+            {
+              "type": "text",
+              "value": " "
+            },
+            {
+              "type": "tag",
+              "title": "mvp",
+              "original": "mvp"
+            }
+          ],
+          "line": 4
+        }
+      ],
+      "content": [
+        {
+          "type": "text",
+          "value": "Parent block"
+        }
+      ],
+      "children": [
+        {
+          "properties": [
+            {
+              "key": "owner",
+              "value": "Ronie",
+              "value_ast": [
+                {
+                  "type": "text",
+                  "value": "Ronie"
+                }
+              ],
+              "line": 6
+            },
+            {
+              "key": "note",
+              "value": "Links to [[Some Page]] and block ref ((aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee))",
+              "value_ast": [
+                {
+                  "type": "text",
+                  "value": "Links to "
+                },
+                {
+                  "type": "page_ref",
+                  "title": "Some Page",
+                  "original": "Some Page"
+                },
+                {
+                  "type": "text",
+                  "value": " and block ref "
+                },
+                {
+                  "type": "block_ref",
+                  "uuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+                }
+              ],
+              "line": 7
+            }
+          ],
+          "content": [
+            {
+              "type": "text",
+              "value": "Child block"
+            }
+          ],
+          "children": [],
+          "line": 5
+        }
+      ],
+      "line": 1
+    }
+  ],
+  "blank_lines": []
+}

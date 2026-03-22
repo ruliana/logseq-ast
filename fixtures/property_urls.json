@@ -1,0 +1,74 @@
+{
+  "version": 1,
+  "blocks": [
+    {
+      "properties": [
+        {
+          "key": "website",
+          "value": "https://example.com",
+          "value_ast": [
+            {
+              "type": "link",
+              "label": [
+                {
+                  "type": "text",
+                  "value": "https://example.com"
+                }
+              ],
+              "url": "https://example.com"
+            }
+          ],
+          "line": 2
+        },
+        {
+          "key": "mixed",
+          "value": "see https://example.com and [[Page]] #tag",
+          "value_ast": [
+            {
+              "type": "text",
+              "value": "see "
+            },
+            {
+              "type": "link",
+              "label": [
+                {
+                  "type": "text",
+                  "value": "https://example.com"
+                }
+              ],
+              "url": "https://example.com"
+            },
+            {
+              "type": "text",
+              "value": " and "
+            },
+            {
+              "type": "page_ref",
+              "title": "Page",
+              "original": "Page"
+            },
+            {
+              "type": "text",
+              "value": " "
+            },
+            {
+              "type": "tag",
+              "title": "tag",
+              "original": "tag"
+            }
+          ],
+          "line": 3
+        }
+      ],
+      "content": [
+        {
+          "type": "text",
+          "value": "Links"
+        }
+      ],
+      "children": [],
+      "line": 1
+    }
+  ],
+  "blank_lines": []
+}
