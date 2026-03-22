@@ -209,8 +209,8 @@ Definition of Done for a feature:
 
 - [ ] Confirm scope: what exactly counts as a “block” in your Logseq page files (bullet-only vs any non-empty line).
 - [ ] Decide how to represent *ordering*: keep raw line order + keep properties as both (a) list and (b) map.
-- [ ] Define AST v1 schema in `logseq-core` (Document / Block / Inline / CodeBlock / Heading / Property / Marker).
-- [ ] Add fixtures (`fixtures/*.md`) + golden JSON outputs (`fixtures/*.json`).
+- [x] Define AST v1 schema in `logseq-core` (Document / Block / Inline / CodeBlock / Heading / Property / Marker).
+- [ ] Add fixtures (`fixtures/*.md`) + golden JSON outputs (`fixtures/*.json`). (scaffolding started)
 - [ ] Implement block tree parser (indentation + bullets + children).
 - [ ] Implement property parsing (`key:: value`) + capture `id:: <uuid>`.
 - [ ] Implement inline tokenizer for:
