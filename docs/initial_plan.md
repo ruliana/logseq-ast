@@ -236,7 +236,7 @@ Definition of Done for a feature:
   - [x] good errors to STDERR + exit codes
 - [x] Add CLI tests to cover STDIN default vs file input (improves coverage for `logseq-ast` crate).
 - [x] Refactor `tokenize_inline` into smaller helper functions to reduce cyclomatic complexity (keep golden tests passing).
-- [ ] Add `--debug-tokens` (optional) to print inline tokens for troubleshooting.
+- [x] Add `--debug-tokens` (optional) to print inline tokens for troubleshooting.
 - [ ] Run `cargo fmt`, `cargo clippy`, `cargo test` in CI-like loop.
 
 ## Detailed milestones

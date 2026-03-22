@@ -13,6 +13,10 @@ struct Args {
     /// Output format (currently only json)
     #[arg(long, default_value = "json")]
     format: String,
+
+    /// Print debug tokenization output to STDERR (for troubleshooting).
+    #[arg(long)]
+    debug_tokens: bool,
 }
 
 fn main() -> anyhow::Result<()> {
@@ -28,6 +32,22 @@ fn main() -> anyhow::Result<()> {
     } else {
         std::fs::read_to_string(input_arg)?
     };
+
+    if args.debug_tokens {
+        eprintln!("--- debug_tokens (tokenize_inline per non-empty line) ---");
+        for (i, line) in input.lines().enumerate() {
+            let line_no = i + 1;
+            if line.trim().is_empty() {
+                continue;
+            }
+            let toks = logseq_core::tokenize::tokenize_inline(line);
+            // Keep noise down: print only when something was recognized.
+            if toks.len() > 1 {
+                eprintln!("line {line_no}: {toks:?}");
+            }
+        }
+        eprintln!("--- end debug_tokens ---");
+    }
 
     let doc = logseq_core::parse::parse(&input).map_err(|e| anyhow::anyhow!("parse error: {e}"))?;
 

@@ -38,3 +38,13 @@ fn explicit_dash_reads_stdin() {
         .success()
         .stdout(predicate::str::contains("\"type\": \"code_block\""));
 }
+
+#[test]
+fn debug_tokens_prints_to_stderr() {
+    let mut cmd = Command::cargo_bin("logseq-ast").expect("binary");
+    cmd.arg("--debug-tokens")
+        .write_stdin("- Hello [[World]] #tag\n")
+        .assert()
+        .success()
+        .stderr(predicate::str::contains("debug_tokens"));
+}
