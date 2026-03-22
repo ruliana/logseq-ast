@@ -210,7 +210,7 @@ Definition of Done for a feature:
 
 ## To-do (living checklist)
 
-- [x] Confirm scope: blocks are **bullet list items only**; empty lines are **not blocks**, but should be represented in the AST as their own node. (Properties attach to previous block)
+- [x] Confirm scope: blocks are **bullet list items only**; empty lines are **not blocks**, but are preserved in the AST (currently via `blank_lines`). Non-bullet lines are continuation text of the previous block. (Properties attach to previous block)
 - [ ] Decide how to represent *ordering*: keep raw line order + keep properties as both (a) list and (b) map.
 - [ ] Update AST + parser to enforce bullet-only blocks and to emit explicit `BlankLine` nodes (preserve line numbers) so spacing is not lost.
 - [ ] Next: parse wiki page refs and standard URLs inside property values (e.g. `tags:: #[[Project]] #mvp`, `link:: https://...`).

@@ -6,6 +6,9 @@ pub enum ParseError {
     #[error("empty input")]
     Empty,
 
+    #[error("expected a bullet block before line {line}")]
+    ExpectedBlock { line: usize },
+
     #[error("unclosed code fence starting at line {line}")]
     UnclosedCodeFence { line: usize },
 }
@@ -25,8 +28,9 @@ pub fn parse(input: &str) -> Result<Document, ParseError> {
 
     let lines: Vec<&str> = input.lines().collect();
     let mut roots: Vec<Block> = Vec::new();
-    // stack of indices into the tree, as mutable references are hard;
-    // we store a path of (vec index) pointers by walking with helper functions.
+    let mut blank_lines: Vec<usize> = Vec::new();
+
+    // stack of indices into the block tree
     let mut stack: Vec<(usize, usize)> = Vec::new(); // (indent_level, index in current parent's children/roots)
 
     let mut idx0 = 0usize;
@@ -34,7 +38,9 @@ pub fn parse(input: &str) -> Result<Document, ParseError> {
         let raw_line = lines[idx0];
         let line_no = idx0 + 1;
 
+        // Blank lines are not blocks, but are preserved in AST.
         if raw_line.trim().is_empty() {
+            blank_lines.push(line_no);
             idx0 += 1;
             continue;
         }
@@ -42,7 +48,28 @@ pub fn parse(input: &str) -> Result<Document, ParseError> {
         let (indent_spaces, trimmed) = split_indent(raw_line);
         let level = indent_spaces / 2;
 
-        // fenced code block? ```lang
+        // Property lines always attach to the previous block.
+        if let Some((key, value)) = parse_property_line(trimmed) {
+            let prop = Property {
+                key: key.to_string(),
+                value: value.to_string(),
+                line: line_no,
+            };
+
+            let Some(block) = last_block_mut(&mut roots, &stack) else {
+                return Err(ParseError::ExpectedBlock { line: line_no });
+            };
+
+            if prop.key == "id" && block.id.is_none() {
+                block.id = Some(prop.value.clone());
+            }
+            block.properties.push(prop);
+
+            idx0 += 1;
+            continue;
+        }
+
+        // Fenced code blocks attach to the previous block as content.
         if let Some(info) = parse_code_fence_open(trimmed) {
             let start_line = line_no;
             idx0 += 1;
@@ -66,56 +93,37 @@ pub fn parse(input: &str) -> Result<Document, ParseError> {
             idx0 += 1;
 
             let text = body.join("\n");
-            let content = vec![Inline::CodeBlock { info, text }];
+            let code_node = Inline::CodeBlock { info, text };
 
-            let block = Block {
-                id: None,
-                marker: None,
-                properties: vec![],
-                content,
-                children: vec![],
-                line: start_line,
+            let Some(block) = last_block_mut(&mut roots, &stack) else {
+                return Err(ParseError::ExpectedBlock { line: start_line });
             };
+            // separate from prior text if needed
+            if !block.content.is_empty() {
+                block.content.push(Inline::Text { value: "\n".into() });
+            }
+            block.content.push(code_node);
 
-            place_block(&mut roots, &mut stack, level, block);
             continue;
         }
 
-        // property line?
-        if let Some((key, value)) = parse_property_line(trimmed) {
-            let prop = Property {
-                key: key.to_string(),
-                value: value.to_string(),
-                line: line_no,
+        // Bullet lines start new blocks; non-bullet lines attach to the previous block.
+        if !is_bullet_line(trimmed) {
+            let Some(block) = last_block_mut(&mut roots, &stack) else {
+                return Err(ParseError::ExpectedBlock { line: line_no });
             };
 
-            if let Some(block) = last_block_mut(&mut roots, &stack) {
-                // capture id::
-                if prop.key == "id" && block.id.is_none() {
-                    block.id = Some(prop.value.clone());
-                }
-                block.properties.push(prop);
-            } else {
-                // no prior block: create an implicit one
-                roots.push(Block {
-                    id: if key == "id" {
-                        Some(value.to_string())
-                    } else {
-                        None
-                    },
-                    marker: None,
-                    properties: vec![prop],
-                    content: vec![],
-                    children: vec![],
-                    line: line_no,
-                });
-                stack.clear();
-                stack.push((level, roots.len() - 1));
+            // Attach continuation text (tokenized) with a newline separator.
+            if !block.content.is_empty() {
+                block.content.push(Inline::Text { value: "\n".into() });
             }
+            block.content.extend(tokenize_inline(trimmed));
+
             idx0 += 1;
             continue;
         }
 
+        // Bullet line: create a new block
         let (marker, content_str) = parse_marker(trimmed);
         let content = tokenize_inline(content_str);
 
@@ -129,12 +137,14 @@ pub fn parse(input: &str) -> Result<Document, ParseError> {
         };
 
         place_block(&mut roots, &mut stack, level, block);
+
         idx0 += 1;
     }
 
     Ok(Document {
         version: 1,
         blocks: roots,
+        blank_lines,
     })
 }
 
@@ -177,6 +187,11 @@ fn strip_bullet(s: &str) -> (&str, bool) {
         return (rest, true);
     }
     (st, false)
+}
+
+fn is_bullet_line(s: &str) -> bool {
+    let st = s.trim_start();
+    st.starts_with("- ") || st.starts_with("* ")
 }
 
 fn parse_property_line(s: &str) -> Option<(&str, &str)> {
