@@ -1,0 +1,7 @@
+- TODO Read [[Logseq]] docs
+  - Block ref: ((60ab3eb7-c1e8-47ad-8a18-770896a10c5c))
+  - Labeled page: [docs]([[Markdown]])
+  - Labeled block: [that block](((60ab3eb7-c1e8-47ad-8a18-770896a10c5c)))
+  - Embed page: {{embed [[Markdown]]}}
+  - Embed block: {{embed ((60ab3eb7-c1e8-47ad-8a18-770896a10c5c))}}
+  - Tag: #tag and #[[multi word tag]]

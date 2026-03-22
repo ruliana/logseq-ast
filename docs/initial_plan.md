@@ -158,6 +158,37 @@ This is simpler, but can be tricky because Logseq’s block semantics do not map
 
 **Plan**: start with Approach A for blocks + a small inline tokenizer.
 
+## Development approach: BDD + unit tests + coverage
+
+- We’ll develop **behavior-first**: for each feature, write a human-readable scenario and make it pass.
+- Unit tests live in `logseq-core` (fast, deterministic).
+- We’ll use **golden tests** (fixture markdown → expected JSON) to lock behavior.
+- Coverage: use `cargo-tarpaulin`.
+
+Commands:
+
+```bash
+# unit + golden tests
+cargo test
+
+# coverage (local)
+# Note: this environment requires the LLVM engine (ptrace/ASLR disable is not permitted).
+cargo tarpaulin --workspace --engine llvm --out Html --output-dir target/coverage
+```
+
+Test organization:
+- `crates/logseq-core/tests/*.rs` for integration-style golden tests
+- `crates/logseq-core/src/*` `#[cfg(test)]` for unit tests
+- `fixtures/` directory containing:
+  - `*.md` input pages
+  - `*.json` expected AST output
+
+Definition of Done for a feature:
+- [ ] scenario(s) written
+- [ ] unit tests passing
+- [ ] golden test(s) added
+- [ ] coverage doesn’t decrease materially (we’ll enforce a threshold once we have enough tests)
+
 ## To-do (living checklist)
 
 - [ ] Confirm scope: what exactly counts as a “block” in your Logseq page files (bullet-only vs any non-empty line).
