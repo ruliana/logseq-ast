@@ -226,7 +226,7 @@ Definition of Done for a feature:
 - [x] Parse task markers at start of block (TODO/DOING/DONE/NOW/LATER) + priorities [#A]/[#B]/[#C] if desired.
 - [x] Implement CLI:
   - [x] file path input
-  - [ ] `-` for STDIN
+  - [x] `-` for STDIN
   - [x] JSON output to STDOUT
   - [x] good errors to STDERR + exit codes
 - [ ] Add `--debug-tokens` (optional) to print inline tokens for troubleshooting.
