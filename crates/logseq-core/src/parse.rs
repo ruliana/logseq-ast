@@ -1,4 +1,4 @@
-use crate::ast::{Block, Document, Inline, Marker, Property};
+use crate::ast::{Block, Document, Inline, Marker, Node, Property};
 use crate::property_value::parse_property_value;
 use crate::tokenize::tokenize_inline;
 
@@ -29,7 +29,7 @@ pub fn parse(input: &str) -> Result<Document, ParseError> {
 
     let lines: Vec<&str> = input.lines().collect();
     let mut roots: Vec<Block> = Vec::new();
-    let mut blank_lines: Vec<usize> = Vec::new();
+    let mut items: Vec<ItemEntry> = Vec::new();
 
     // stack of indices into the block tree
     let mut stack: Vec<(usize, usize)> = Vec::new(); // (indent_level, index in current parent's children/roots)
@@ -41,7 +41,7 @@ pub fn parse(input: &str) -> Result<Document, ParseError> {
 
         // Blank lines are not blocks, but are preserved in AST.
         if raw_line.trim().is_empty() {
-            blank_lines.push(line_no);
+            items.push(ItemEntry::BlankLine { line: line_no });
             idx0 += 1;
             continue;
         }
@@ -49,94 +49,102 @@ pub fn parse(input: &str) -> Result<Document, ParseError> {
         let (indent_spaces, trimmed) = split_indent(raw_line);
         let level = indent_spaces / 2;
 
-        // Property lines always attach to the previous block.
-        if let Some((key, value)) = parse_property_line(trimmed) {
-            let value_ast = parse_property_value(value);
-            let prop = Property {
-                key: key.to_string(),
-                value: value.to_string(),
-                value_ast,
-                line: line_no,
-            };
+        match classify_line(trimmed) {
+            LineKind::Property { key, value } => {
+                let value_ast = parse_property_value(value);
+                let prop = Property {
+                    key: key.to_string(),
+                    value: value.to_string(),
+                    value_ast,
+                    line: line_no,
+                };
 
-            let Some(block) = last_block_mut(&mut roots, &stack) else {
-                return Err(ParseError::ExpectedBlock { line: line_no });
-            };
+                let Some(block) = last_block_mut(&mut roots, &stack) else {
+                    return Err(ParseError::ExpectedBlock { line: line_no });
+                };
 
-            if prop.key == "id" && block.id.is_none() {
-                block.id = Some(prop.value.clone());
+                if prop.key == "id" && block.id.is_none() {
+                    block.id = Some(prop.value.clone());
+                }
+                block.properties.push(prop);
+
+                idx0 += 1;
             }
-            block.properties.push(prop);
+            LineKind::CodeFence { info } => {
+                let start_line = line_no;
+                let (next_idx0, text) = parse_fenced_code_block(&lines, idx0, start_line)?;
+                idx0 = next_idx0;
 
-            idx0 += 1;
-            continue;
-        }
+                // Require a prior block to attach under.
+                if stack.is_empty() {
+                    return Err(ParseError::ExpectedBlock { line: start_line });
+                }
 
-        // Fenced code blocks become their own *child block* when indented under a
-        // bullet block (Option B).
-        if let Some(info) = parse_code_fence_open(trimmed) {
-            let start_line = line_no;
-            let (next_idx0, text) = parse_fenced_code_block(&lines, idx0, start_line)?;
-            idx0 = next_idx0;
+                let content = vec![Inline::CodeBlock { info, text }];
+                let block = Block {
+                    id: None,
+                    marker: None,
+                    properties: vec![],
+                    content,
+                    children: vec![],
+                    line: start_line,
+                };
 
-            // Require a prior block to attach under.
-            if stack.is_empty() {
-                return Err(ParseError::ExpectedBlock { line: start_line });
+                place_block(&mut roots, &mut stack, level, block);
             }
+            LineKind::Continuation => {
+                let Some(block) = last_block_mut(&mut roots, &stack) else {
+                    return Err(ParseError::ExpectedBlock { line: line_no });
+                };
 
-            let content = vec![Inline::CodeBlock { info, text }];
-            let block = Block {
-                id: None,
-                marker: None,
-                properties: vec![],
-                content,
-                children: vec![],
-                line: start_line,
-            };
+                // Attach continuation text (tokenized) with a newline separator.
+                if !block.content.is_empty() {
+                    block.content.push(Inline::Text { value: "\n".into() });
+                }
+                block.content.extend(tokenize_inline(trimmed));
 
-            place_block(&mut roots, &mut stack, level, block);
-            continue;
-        }
-
-        // Bullet lines start new blocks; non-bullet lines attach to the previous block.
-        if !is_bullet_line(trimmed) {
-            let Some(block) = last_block_mut(&mut roots, &stack) else {
-                return Err(ParseError::ExpectedBlock { line: line_no });
-            };
-
-            // Attach continuation text (tokenized) with a newline separator.
-            if !block.content.is_empty() {
-                block.content.push(Inline::Text { value: "\n".into() });
+                idx0 += 1;
             }
-            block.content.extend(tokenize_inline(trimmed));
+            LineKind::Bullet => {
+                let (marker, content_str) = parse_marker(trimmed);
+                let content = tokenize_inline(content_str);
 
-            idx0 += 1;
-            continue;
+                let block = Block {
+                    id: None,
+                    marker,
+                    properties: vec![],
+                    content,
+                    children: vec![],
+                    line: line_no,
+                };
+
+                if let Some(root_idx) = place_block(&mut roots, &mut stack, level, block) {
+                    items.push(ItemEntry::RootBlock { index: root_idx });
+                }
+
+                idx0 += 1;
+            }
         }
+    }
 
-        // Bullet line: create a new block
-        let (marker, content_str) = parse_marker(trimmed);
-        let content = tokenize_inline(content_str);
-
-        let block = Block {
-            id: None,
-            marker,
-            properties: vec![],
-            content,
-            children: vec![],
-            line: line_no,
-        };
-
-        place_block(&mut roots, &mut stack, level, block);
-
-        idx0 += 1;
+    let mut out_items: Vec<Node> = Vec::with_capacity(items.len());
+    for entry in items {
+        match entry {
+            ItemEntry::BlankLine { line } => out_items.push(Node::BlankLine { line }),
+            ItemEntry::RootBlock { index } => out_items.push(Node::Block(roots[index].clone())),
+        }
     }
 
     Ok(Document {
         version: 1,
-        blocks: roots,
-        blank_lines,
+        items: out_items,
     })
+}
+
+#[derive(Debug, Clone, Copy)]
+enum ItemEntry {
+    BlankLine { line: usize },
+    RootBlock { index: usize },
 }
 
 fn parse_code_fence_open(s: &str) -> Option<Option<String>> {
@@ -230,6 +238,30 @@ fn parse_property_line(s: &str) -> Option<(&str, &str)> {
     Some((key, val))
 }
 
+#[derive(Debug, Clone)]
+enum LineKind<'a> {
+    Property { key: &'a str, value: &'a str },
+    CodeFence { info: Option<String> },
+    Bullet,
+    Continuation,
+}
+
+fn classify_line(s: &str) -> LineKind<'_> {
+    if let Some((key, value)) = parse_property_line(s) {
+        return LineKind::Property { key, value };
+    }
+
+    if let Some(info) = parse_code_fence_open(s) {
+        return LineKind::CodeFence { info };
+    }
+
+    if is_bullet_line(s) {
+        return LineKind::Bullet;
+    }
+
+    LineKind::Continuation
+}
+
 fn parse_marker(s: &str) -> (Option<Marker>, &str) {
     let (without_bullet, _had_bullet) = strip_bullet(s);
     let st = without_bullet.trim_start();
@@ -254,7 +286,7 @@ fn place_block(
     stack: &mut Vec<(usize, usize)>,
     level: usize,
     block: Block,
-) {
+) -> Option<usize> {
     // pop until we find parent with indent < level
     while let Some((ind, _)) = stack.last().copied() {
         if ind < level {
@@ -269,10 +301,12 @@ fn place_block(
         parent.children.push(block);
         let child_idx = parent.children.len() - 1;
         stack.push((level, child_idx));
+        None
     } else {
         roots.push(block);
         let root_idx = roots.len() - 1;
         stack.push((level, root_idx));
+        Some(root_idx)
     }
 }
 

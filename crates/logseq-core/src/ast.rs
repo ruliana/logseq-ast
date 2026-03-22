@@ -5,14 +5,15 @@ use serde::{Deserialize, Serialize};
 pub struct Document {
     pub version: u32,
 
-    /// Root blocks (bullet list items).
-    pub blocks: Vec<Block>,
+    /// Ordered top-level nodes (blocks + explicit blank lines).
+    pub items: Vec<Node>,
+}
 
-    /// Blank lines preserved from the source (1-indexed line numbers).
-    ///
-    /// This is a first step toward preserving formatting; later we can move to a
-    /// fully ordered node stream if needed.
-    pub blank_lines: Vec<usize>,
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(tag = "type", rename_all = "snake_case")]
+pub enum Node {
+    Block(Block),
+    BlankLine { line: usize },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]

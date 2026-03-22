@@ -40,5 +40,5 @@ fn golden(name: &str) {
     assert_eq!(json.trim(), expected.trim());
 
     // sanity check
-    assert!(!doc.blocks.is_empty());
+    assert!(!doc.items.is_empty());
 }

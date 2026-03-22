@@ -1,7 +1,8 @@
 {
   "version": 1,
-  "blocks": [
+  "items": [
     {
+      "type": "block",
       "properties": [],
       "content": [
         {
@@ -26,6 +27,7 @@
       "line": 1
     },
     {
+      "type": "block",
       "properties": [],
       "content": [
         {
@@ -36,6 +38,5 @@
       "children": [],
       "line": 6
     }
-  ],
-  "blank_lines": []
+  ]
 }

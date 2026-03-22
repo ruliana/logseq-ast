@@ -1,7 +1,8 @@
 {
   "version": 1,
-  "blocks": [
+  "items": [
     {
+      "type": "block",
       "marker": "TODO",
       "properties": [],
       "content": [
@@ -142,6 +143,5 @@
       ],
       "line": 1
     }
-  ],
-  "blank_lines": []
+  ]
 }
