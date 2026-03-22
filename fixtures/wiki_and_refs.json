@@ -1,0 +1,146 @@
+{
+  "version": 1,
+  "blocks": [
+    {
+      "marker": "TODO",
+      "properties": [],
+      "content": [
+        {
+          "type": "text",
+          "value": "Read "
+        },
+        {
+          "type": "page_ref",
+          "title": "Logseq",
+          "original": "Logseq"
+        },
+        {
+          "type": "text",
+          "value": " docs"
+        }
+      ],
+      "children": [
+        {
+          "properties": [],
+          "content": [
+            {
+              "type": "text",
+              "value": "Block ref: "
+            },
+            {
+              "type": "block_ref",
+              "uuid": "60ab3eb7-c1e8-47ad-8a18-770896a10c5c"
+            }
+          ],
+          "children": [],
+          "line": 2
+        },
+        {
+          "properties": [],
+          "content": [
+            {
+              "type": "text",
+              "value": "Labeled page: "
+            },
+            {
+              "type": "link",
+              "label": [
+                {
+                  "type": "text",
+                  "value": "docs"
+                }
+              ],
+              "url": "[[Markdown]]"
+            }
+          ],
+          "children": [],
+          "line": 3
+        },
+        {
+          "properties": [],
+          "content": [
+            {
+              "type": "text",
+              "value": "Labeled block: "
+            },
+            {
+              "type": "link",
+              "label": [
+                {
+                  "type": "text",
+                  "value": "that block"
+                }
+              ],
+              "url": "((60ab3eb7-c1e8-47ad-8a18-770896a10c5c))"
+            }
+          ],
+          "children": [],
+          "line": 4
+        },
+        {
+          "properties": [],
+          "content": [
+            {
+              "type": "text",
+              "value": "Embed page: "
+            },
+            {
+              "type": "embed",
+              "target": {
+                "type": "page_ref",
+                "title": "Markdown",
+                "original": "Markdown"
+              }
+            }
+          ],
+          "children": [],
+          "line": 5
+        },
+        {
+          "properties": [],
+          "content": [
+            {
+              "type": "text",
+              "value": "Embed block: "
+            },
+            {
+              "type": "embed",
+              "target": {
+                "type": "block_ref",
+                "uuid": "60ab3eb7-c1e8-47ad-8a18-770896a10c5c"
+              }
+            }
+          ],
+          "children": [],
+          "line": 6
+        },
+        {
+          "properties": [],
+          "content": [
+            {
+              "type": "text",
+              "value": "Tag: "
+            },
+            {
+              "type": "tag",
+              "title": "tag",
+              "original": "tag"
+            },
+            {
+              "type": "text",
+              "value": " and "
+            },
+            {
+              "type": "tag",
+              "title": "multi word tag",
+              "original": "multi word tag"
+            }
+          ],
+          "children": [],
+          "line": 7
+        }
+      ],
+      "line": 1
+    }
+  ]
+}

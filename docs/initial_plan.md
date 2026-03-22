@@ -210,25 +210,25 @@ Definition of Done for a feature:
 - [ ] Confirm scope: what exactly counts as a “block” in your Logseq page files (bullet-only vs any non-empty line).
 - [ ] Decide how to represent *ordering*: keep raw line order + keep properties as both (a) list and (b) map.
 - [x] Define AST v1 schema in `logseq-core` (Document / Block / Inline / CodeBlock / Heading / Property / Marker).
-- [ ] Add fixtures (`fixtures/*.md`) + golden JSON outputs (`fixtures/*.json`). (scaffolding started)
-- [ ] Implement block tree parser (indentation + bullets + children).
-- [ ] Implement property parsing (`key:: value`) + capture `id:: <uuid>`.
-- [ ] Implement inline tokenizer for:
-  - [ ] wiki links `[[...]]`
-  - [ ] block refs `((uuid))`
-  - [ ] embeds `{{embed ...}}`
-  - [ ] labeled page ref `[label]([[page]])`
-  - [ ] labeled block ref `[label](((uuid)))`
-  - [ ] tags `#tag` and `#[[multi word]]`
-  - [ ] standard links `[label](url)`
-  - [ ] code spans `` `code` ``
+- [x] Add fixtures (`fixtures/*.md`) + golden JSON outputs (`fixtures/*.json`). (first golden snapshot added)
+- [x] Implement block tree parser (indentation + bullets + children).
+- [x] Implement property parsing (`key:: value`) + capture `id:: <uuid>`.
+- [x] Implement inline tokenizer for:
+  - [x] wiki links `[[...]]`
+  - [x] block refs `((uuid))`
+  - [x] embeds `{{embed ...}}`
+  - [x] labeled page ref `[label]([[page]])`
+  - [x] labeled block ref `[label](((uuid)))`
+  - [x] tags `#tag` and `#[[multi word]]`
+  - [x] standard links `[label](url)` (simple heuristics)
+  - [x] code spans `` `code` ``
 - [ ] Handle fenced code blocks (```lang ... ```), preserving info string + content.
-- [ ] Parse task markers at start of block (TODO/DOING/DONE/NOW/LATER) + priorities [#A]/[#B]/[#C] if desired.
-- [ ] Implement CLI:
-  - [ ] file path input
+- [x] Parse task markers at start of block (TODO/DOING/DONE/NOW/LATER) + priorities [#A]/[#B]/[#C] if desired.
+- [x] Implement CLI:
+  - [x] file path input
   - [ ] `-` for STDIN
-  - [ ] JSON output to STDOUT
-  - [ ] good errors to STDERR + exit codes
+  - [x] JSON output to STDOUT
+  - [x] good errors to STDERR + exit codes
 - [ ] Add `--debug-tokens` (optional) to print inline tokens for troubleshooting.
 - [ ] Run `cargo fmt`, `cargo clippy`, `cargo test` in CI-like loop.
 

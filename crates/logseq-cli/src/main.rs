@@ -16,7 +16,7 @@ fn main() -> anyhow::Result<()> {
     let args = Args::parse();
     let input = std::fs::read_to_string(&args.input)?;
 
-    let doc = logseq_core::parse::parse(&input)?;
+    let doc = logseq_core::parse::parse(&input).map_err(|e| anyhow::anyhow!("parse error: {e}"))?;
 
     match args.format.as_str() {
         "json" => {

@@ -9,7 +9,12 @@ fn golden_wiki_and_refs() {
     let doc = logseq_core::parse::parse(&md).expect("parse");
     let json = serde_json::to_string_pretty(&doc).expect("serialize");
 
-    // For now, just assert we produce valid JSON and a non-empty document.
-    // Once AST schema is finalized, compare against fixtures/wiki_and_refs.json.
-    assert!(json.contains("items"));
+    // Golden comparison (behavior-driven): output JSON must match the expected snapshot.
+    let expected = std::fs::read_to_string(Path::new("../../fixtures/wiki_and_refs.json"))
+        .expect("read expected json");
+
+    assert_eq!(json.trim(), expected.trim());
+
+    // sanity check
+    assert!(!doc.blocks.is_empty());
 }
