@@ -69,7 +69,8 @@ pub fn parse(input: &str) -> Result<Document, ParseError> {
             continue;
         }
 
-        // Fenced code blocks attach to the previous block as content.
+        // Fenced code blocks are their own block node ("fancy block").
+        // Plain non-bullet text still attaches to the previous bullet block.
         if let Some(info) = parse_code_fence_open(trimmed) {
             let start_line = line_no;
             idx0 += 1;
@@ -93,17 +94,18 @@ pub fn parse(input: &str) -> Result<Document, ParseError> {
             idx0 += 1;
 
             let text = body.join("\n");
-            let code_node = Inline::CodeBlock { info, text };
+            let content = vec![Inline::CodeBlock { info, text }];
 
-            let Some(block) = last_block_mut(&mut roots, &stack) else {
-                return Err(ParseError::ExpectedBlock { line: start_line });
+            let block = Block {
+                id: None,
+                marker: None,
+                properties: vec![],
+                content,
+                children: vec![],
+                line: start_line,
             };
-            // separate from prior text if needed
-            if !block.content.is_empty() {
-                block.content.push(Inline::Text { value: "\n".into() });
-            }
-            block.content.push(code_node);
 
+            place_block(&mut roots, &mut stack, level, block);
             continue;
         }
 

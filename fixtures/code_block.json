@@ -7,18 +7,22 @@
         {
           "type": "text",
           "value": "Here is some code:"
-        },
-        {
-          "type": "text",
-          "value": "\n"
-        },
-        {
-          "type": "code_block",
-          "info": "clojure",
-          "text": "  ;; this should not parse [[Page]] or #tag inside code\n  (println \"hi\")"
         }
       ],
-      "children": [],
+      "children": [
+        {
+          "properties": [],
+          "content": [
+            {
+              "type": "code_block",
+              "info": "clojure",
+              "text": "  ;; this should not parse [[Page]] or #tag inside code\n  (println \"hi\")"
+            }
+          ],
+          "children": [],
+          "line": 2
+        }
+      ],
       "line": 1
     },
     {
