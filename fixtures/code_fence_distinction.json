@@ -1,0 +1,65 @@
+{
+  "version": 1,
+  "blocks": [
+    {
+      "properties": [],
+      "content": [
+        {
+          "type": "text",
+          "value": "Parent"
+        }
+      ],
+      "children": [
+        {
+          "properties": [],
+          "content": [
+            {
+              "type": "code_block",
+              "info": "js",
+              "text": "  console.log(\"A: indented fence, no bullet\")"
+            }
+          ],
+          "children": [],
+          "line": 2
+        },
+        {
+          "properties": [],
+          "content": [
+            {
+              "type": "text",
+              "value": "Code block as its own bullet"
+            }
+          ],
+          "children": [
+            {
+              "properties": [],
+              "content": [
+                {
+                  "type": "code_block",
+                  "info": "js",
+                  "text": "    console.log(\"B: code fence under a child bullet\")"
+                }
+              ],
+              "children": [],
+              "line": 6
+            }
+          ],
+          "line": 5
+        }
+      ],
+      "line": 1
+    },
+    {
+      "properties": [],
+      "content": [
+        {
+          "type": "text",
+          "value": "After"
+        }
+      ],
+      "children": [],
+      "line": 9
+    }
+  ],
+  "blank_lines": []
+}
