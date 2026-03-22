@@ -210,7 +210,7 @@ Definition of Done for a feature:
 
 ## To-do (living checklist)
 
-- [ ] Confirm scope: what exactly counts as a “block” in your Logseq page files (bullet-only vs any non-empty line).
+- [ ] Confirm scope: what exactly counts as a “block” in your Logseq page files (bullet-only vs any non-empty line). (Properties attach to previous block)
 - [ ] Decide how to represent *ordering*: keep raw line order + keep properties as both (a) list and (b) map.
 - [x] Define AST v1 schema in `logseq-core` (Document / Block / Inline / CodeBlock / Heading / Property / Marker).
 - [x] Add fixtures (`fixtures/*.md`) + golden JSON outputs (`fixtures/*.json`). (first golden snapshot added)
