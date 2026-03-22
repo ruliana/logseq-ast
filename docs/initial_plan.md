@@ -158,6 +158,22 @@ This is simpler, but can be tricky because Logseq’s block semantics do not map
 
 **Plan**: start with Approach A for blocks + a small inline tokenizer.
 
+## Tooling: formatter, linter, complexity
+
+- Formatter: `cargo fmt`
+- Linter: `cargo clippy` (treat warnings as errors in CI)
+- Complexity / code metrics: `kimun` (`km`)
+
+Commands:
+
+```bash
+cargo fmt
+cargo clippy -- -D warnings
+
+# metrics (complexity/hotspots/etc)
+km
+```
+
 ## Development approach: BDD + unit tests + coverage
 
 - We’ll develop **behavior-first**: for each feature, write a human-readable scenario and make it pass.
