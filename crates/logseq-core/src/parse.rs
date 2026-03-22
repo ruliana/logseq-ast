@@ -73,34 +73,15 @@ pub fn parse(input: &str) -> Result<Document, ParseError> {
         // bullet block (Option B).
         if let Some(info) = parse_code_fence_open(trimmed) {
             let start_line = line_no;
-            idx0 += 1;
-            let mut body: Vec<&str> = Vec::new();
-
-            while idx0 < lines.len() {
-                let l = lines[idx0];
-                let (_ind2, t2) = split_indent(l);
-                if parse_code_fence_close(t2) {
-                    break;
-                }
-                body.push(l);
-                idx0 += 1;
-            }
-
-            if idx0 >= lines.len() {
-                return Err(ParseError::UnclosedCodeFence { line: start_line });
-            }
-
-            // consume closing fence
-            idx0 += 1;
+            let (next_idx0, text) = parse_fenced_code_block(&lines, idx0, start_line)?;
+            idx0 = next_idx0;
 
             // Require a prior block to attach under.
             if stack.is_empty() {
                 return Err(ParseError::ExpectedBlock { line: start_line });
             }
 
-            let text = body.join("\n");
             let content = vec![Inline::CodeBlock { info, text }];
-
             let block = Block {
                 id: None,
                 marker: None,
@@ -169,6 +150,35 @@ fn parse_code_fence_open(s: &str) -> Option<Option<String>> {
 
 fn parse_code_fence_close(s: &str) -> bool {
     s.trim_start().starts_with("```")
+}
+
+fn parse_fenced_code_block(
+    lines: &[&str],
+    start_idx0: usize,
+    start_line: usize,
+) -> Result<(usize, String), ParseError> {
+    // start_idx0 is the index of the opening fence line.
+    let mut idx0 = start_idx0 + 1;
+    let mut body: Vec<&str> = Vec::new();
+
+    while idx0 < lines.len() {
+        let l = lines[idx0];
+        let (_ind2, t2) = split_indent(l);
+        if parse_code_fence_close(t2) {
+            break;
+        }
+        body.push(l);
+        idx0 += 1;
+    }
+
+    if idx0 >= lines.len() {
+        return Err(ParseError::UnclosedCodeFence { line: start_line });
+    }
+
+    // consume closing fence
+    idx0 += 1;
+
+    Ok((idx0, body.join("\n")))
 }
 
 fn split_indent(line: &str) -> (usize, &str) {
