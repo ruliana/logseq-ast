@@ -1,11 +1,11 @@
 # rust-logseq-ast
 
-Rust workspace for a CLI that transforms a markdown file written in a **Logseq**-style log format into an **AST**.
+Rust workspace for a CLI that transforms a Logseq markdown page into an **AST**.
 
 ## Layout
 
 - `crates/logseq-core/` — parsing + AST types (library)
-- `crates/logseq-cli/` — command line interface (binary)
+- `crates/logseq-cli/` — command line interface (binary `logseq-ast`)
 
 ## Dev
 

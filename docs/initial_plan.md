@@ -79,15 +79,18 @@ Since we are parsing **a single page file**, we will not validate whether a refe
 
 ## CLI (Unix philosophy)
 
-Binary name: `logseq`
+Binary name: `logseq-ast`
 
 Proposed interface:
 
 ```bash
-logseq <path/to/page.md> > ast.json
+logseq-ast <path/to/page.md> > ast.json
 
-# later (optional)
-logseq - < page.md > ast.json
+# STDIN (default)
+logseq-ast < page.md > ast.json
+
+# explicit STDIN
+logseq-ast - < page.md > ast.json
 ```
 
 - Input: file path, or `-` for STDIN (we can add `-` support early)

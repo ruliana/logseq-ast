@@ -1,7 +1,7 @@
 use clap::Parser;
 
 #[derive(Debug, Parser)]
-#[command(name = "logseq")]
+#[command(name = "logseq-ast")]
 #[command(about = "Transform Logseq markdown into an AST", long_about = None)]
 struct Args {
     /// Input markdown file path.
