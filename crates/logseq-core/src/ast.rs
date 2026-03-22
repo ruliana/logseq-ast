@@ -50,13 +50,38 @@ pub enum Marker {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum Inline {
-    Text { value: String },
-    PageRef { title: String, original: String },
-    BlockRef { uuid: String },
-    Tag { title: String, original: String },
-    Link { label: Vec<Inline>, url: String },
-    Embed { target: EmbedTarget },
-    CodeSpan { code: String },
+    Text {
+        value: String,
+    },
+    PageRef {
+        title: String,
+        original: String,
+    },
+    BlockRef {
+        uuid: String,
+    },
+    Tag {
+        title: String,
+        original: String,
+    },
+    Link {
+        label: Vec<Inline>,
+        url: String,
+    },
+    Embed {
+        target: EmbedTarget,
+    },
+    CodeSpan {
+        code: String,
+    },
+
+    /// Fenced code block (```lang ... ```). This is a block-level construct but we
+    /// model it as an inline node inside a `Block` to preserve ordering.
+    CodeBlock {
+        #[serde(skip_serializing_if = "Option::is_none")]
+        info: Option<String>,
+        text: String,
+    },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]

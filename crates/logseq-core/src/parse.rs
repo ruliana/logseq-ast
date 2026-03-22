@@ -1,10 +1,13 @@
-use crate::ast::{Block, Document, Marker, Property};
+use crate::ast::{Block, Document, Inline, Marker, Property};
 use crate::tokenize::tokenize_inline;
 
 #[derive(Debug, thiserror::Error)]
 pub enum ParseError {
     #[error("empty input")]
     Empty,
+
+    #[error("unclosed code fence starting at line {line}")]
+    UnclosedCodeFence { line: usize },
 }
 
 /// Parse a Logseq markdown page into an AST.
@@ -26,14 +29,57 @@ pub fn parse(input: &str) -> Result<Document, ParseError> {
     // we store a path of (vec index) pointers by walking with helper functions.
     let mut stack: Vec<(usize, usize)> = Vec::new(); // (indent_level, index in current parent's children/roots)
 
-    for (idx0, raw_line) in lines.iter().enumerate() {
+    let mut idx0 = 0usize;
+    while idx0 < lines.len() {
+        let raw_line = lines[idx0];
         let line_no = idx0 + 1;
+
         if raw_line.trim().is_empty() {
+            idx0 += 1;
             continue;
         }
 
         let (indent_spaces, trimmed) = split_indent(raw_line);
         let level = indent_spaces / 2;
+
+        // fenced code block? ```lang
+        if let Some(info) = parse_code_fence_open(trimmed) {
+            let start_line = line_no;
+            idx0 += 1;
+            let mut body: Vec<&str> = Vec::new();
+
+            while idx0 < lines.len() {
+                let l = lines[idx0];
+                let (_ind2, t2) = split_indent(l);
+                if parse_code_fence_close(t2) {
+                    break;
+                }
+                body.push(l);
+                idx0 += 1;
+            }
+
+            if idx0 >= lines.len() {
+                return Err(ParseError::UnclosedCodeFence { line: start_line });
+            }
+
+            // consume closing fence
+            idx0 += 1;
+
+            let text = body.join("\n");
+            let content = vec![Inline::CodeBlock { info, text }];
+
+            let block = Block {
+                id: None,
+                marker: None,
+                properties: vec![],
+                content,
+                children: vec![],
+                line: start_line,
+            };
+
+            place_block(&mut roots, &mut stack, level, block);
+            continue;
+        }
 
         // property line?
         if let Some((key, value)) = parse_property_line(trimmed) {
@@ -66,6 +112,7 @@ pub fn parse(input: &str) -> Result<Document, ParseError> {
                 stack.clear();
                 stack.push((level, roots.len() - 1));
             }
+            idx0 += 1;
             continue;
         }
 
@@ -81,14 +128,30 @@ pub fn parse(input: &str) -> Result<Document, ParseError> {
             line: line_no,
         };
 
-        // place in tree based on level
         place_block(&mut roots, &mut stack, level, block);
+        idx0 += 1;
     }
 
     Ok(Document {
         version: 1,
         blocks: roots,
     })
+}
+
+fn parse_code_fence_open(s: &str) -> Option<Option<String>> {
+    let st = s.trim_start();
+    if let Some(rest) = st.strip_prefix("```") {
+        let info = rest.trim();
+        if info.is_empty() {
+            return Some(None);
+        }
+        return Some(Some(info.to_string()));
+    }
+    None
+}
+
+fn parse_code_fence_close(s: &str) -> bool {
+    s.trim_start().starts_with("```")
 }
 
 fn split_indent(line: &str) -> (usize, &str) {

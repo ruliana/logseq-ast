@@ -222,7 +222,7 @@ Definition of Done for a feature:
   - [x] tags `#tag` and `#[[multi word]]`
   - [x] standard links `[label](url)` (simple heuristics)
   - [x] code spans `` `code` ``
-- [ ] Handle fenced code blocks (```lang ... ```), preserving info string + content.
+- [x] Handle fenced code blocks (```lang ... ```), preserving info string + content.
 - [x] Parse task markers at start of block (TODO/DOING/DONE/NOW/LATER) + priorities [#A]/[#B]/[#C] if desired.
 - [x] Implement CLI:
   - [x] file path input
