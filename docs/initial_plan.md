@@ -65,12 +65,17 @@ We will represent embeds as nodes, but we will **not expand** them (no graph acc
 The docs mention task markers like `TODO`, `DOING`, `DONE`, `LATER`, `NOW`.
 We should parse these if they appear at the beginning of a block.
 
-### 8) “Weak pages”
-Terminology varies, but in practice this usually means references that:
-- point to pages that may not exist yet
-- include aliases/synonyms/case-folding differences
+### 8) Wiki links / page references ("wiki" in Logseq)
+By “wiki” you meant Logseq’s wiki-style page references.
 
-Since we are parsing **a single page file**, we will treat all page references as syntactic nodes with a normalized title; whether the page exists is outside the scope of this program.
+We will treat these as first-class syntactic nodes:
+- `[[Page Name]]`
+- labeled form: `[label]([[Page Name]])`
+- tags as page-ish refs:
+  - `#tag`
+  - `#[[Multi Word Tag]]`
+
+Since we are parsing **a single page file**, we will not validate whether a referenced page exists in the graph; we only normalize + capture the reference.
 
 ## CLI (Unix philosophy)
 
