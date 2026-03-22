@@ -4,152 +4,235 @@ use crate::ast::{EmbedTarget, Inline};
 ///
 /// This is intentionally conservative (aims to not mis-parse). Unknown patterns
 /// fall back to `Inline::Text`.
+///
+/// Refactor note: `tokenize_inline` delegates to small recognizers to keep
+/// cyclomatic complexity manageable.
 pub fn tokenize_inline(input: &str) -> Vec<Inline> {
     let mut out: Vec<Inline> = Vec::new();
-    let mut i = 0;
-    let s = input;
+    let mut cur = Cursor::new(input);
 
-    while i < s.len() {
-        // code span: `...`
-        if s.as_bytes()[i] == b'`'
-            && let Some(end) = s[i + 1..].find('`')
-        {
-            let code = &s[i + 1..i + 1 + end];
-            out.push(Inline::CodeSpan {
-                code: code.to_string(),
-            });
-            i = i + 1 + end + 1;
+    while !cur.is_eof() {
+        if let Some(n) = try_code_span(&mut cur) {
+            out.push(n);
+            continue;
+        }
+        if let Some(n) = try_embed(&mut cur) {
+            out.push(n);
+            continue;
+        }
+        if let Some(n) = try_labeled_link_like(&mut cur) {
+            out.push(n);
+            continue;
+        }
+        if let Some(n) = try_page_ref(&mut cur) {
+            out.push(n);
+            continue;
+        }
+        if let Some(n) = try_block_ref(&mut cur) {
+            out.push(n);
+            continue;
+        }
+        if let Some(n) = try_tag(&mut cur) {
+            out.push(n);
             continue;
         }
 
-        // embed: {{embed ...}}
-        if s[i..].starts_with("{{embed ")
-            && let Some(end) = s[i..].find("}}")
-        {
-            let inner = s[i + "{{embed ".len()..i + end].trim();
-            if let Some(target) = parse_embed_target(inner) {
-                out.push(Inline::Embed { target });
-                i = i + end + 2;
-                continue;
-            }
-        }
-
-        // labeled refs / links: [label](...)
-        if s.as_bytes()[i] == b'['
-            && let Some(close_bracket) = s[i + 1..].find(']')
-        {
-            let label_raw = &s[i + 1..i + 1 + close_bracket];
-            let after = i + 1 + close_bracket + 1;
-            if after < s.len()
-                && s.as_bytes()[after] == b'('
-                && let Some(close_paren) = find_matching_paren(s, after)
-            {
-                let target_raw = &s[after + 1..close_paren];
-
-                // [label]([[Page]])
-                if let Some(page) = parse_page_ref(target_raw) {
-                    out.push(Inline::Link {
-                        label: tokenize_inline(label_raw),
-                        url: format!("[[{}]]", page.original),
-                    });
-                    i = close_paren + 1;
-                    continue;
-                }
-
-                // [label](((uuid)))
-                if let Some(uuid) = parse_block_ref(target_raw) {
-                    out.push(Inline::Link {
-                        label: tokenize_inline(label_raw),
-                        url: format!("(({}))", uuid),
-                    });
-                    i = close_paren + 1;
-                    continue;
-                }
-
-                // standard markdown link [label](url)
-                if is_probably_url(target_raw) {
-                    out.push(Inline::Link {
-                        label: tokenize_inline(label_raw),
-                        url: target_raw.to_string(),
-                    });
-                    i = close_paren + 1;
-                    continue;
-                }
-            }
-        }
-
-        // page ref: [[...]]
-        if s[i..].starts_with("[[")
-            && let Some(end) = s[i + 2..].find("]]")
-        {
-            let inner = &s[i + 2..i + 2 + end];
-            let title = normalize_page_title(inner);
-            out.push(Inline::PageRef {
-                title,
-                original: inner.to_string(),
-            });
-            i = i + 2 + end + 2;
-            continue;
-        }
-
-        // block ref: ((...))
-        if s[i..].starts_with("((")
-            && let Some(end) = s[i + 2..].find("))")
-        {
-            let inner = s[i + 2..i + 2 + end].trim();
-            out.push(Inline::BlockRef {
-                uuid: inner.to_string(),
-            });
-            i = i + 2 + end + 2;
-            continue;
-        }
-
-        // tags: #[[...]] or #word
-        if s.as_bytes()[i] == b'#' {
-            // #[[multi word]]
-            if s[i..].starts_with("#[[")
-                && let Some(end) = s[i + 3..].find("]]")
-            {
-                let inner = &s[i + 3..i + 3 + end];
-                out.push(Inline::Tag {
-                    title: normalize_page_title(inner),
-                    original: inner.to_string(),
-                });
-                i = i + 3 + end + 2;
-                continue;
-            }
-
-            // #word (stop at whitespace or punctuation)
-            let mut j = i + 1;
-            while j < s.len() {
-                let c = s[j..].chars().next().unwrap();
-                if c.is_whitespace() {
-                    break;
-                }
-                // stop at common punctuation that ends a tag
-                if [',', '.', ';', ':', '!', '?', ')', ']', '}', '"', '\''].contains(&c) {
-                    break;
-                }
-                j += c.len_utf8();
-            }
-            if j > i + 1 {
-                let inner = &s[i + 1..j];
-                out.push(Inline::Tag {
-                    title: normalize_page_title(inner),
-                    original: inner.to_string(),
-                });
-                i = j;
-                continue;
-            }
-        }
-
-        // default: emit one char as text (we will coalesce later)
-        let ch = s[i..].chars().next().unwrap();
+        // Default: one char of text.
+        let ch = cur.take_char();
         push_text_if_needed(&mut out, &ch.to_string());
-        i += ch.len_utf8();
     }
 
     coalesce_text(out)
+}
+
+#[derive(Debug, Clone)]
+struct Cursor<'a> {
+    s: &'a str,
+    i: usize,
+}
+
+impl<'a> Cursor<'a> {
+    fn new(s: &'a str) -> Self {
+        Self { s, i: 0 }
+    }
+
+    fn is_eof(&self) -> bool {
+        self.i >= self.s.len()
+    }
+
+    fn rest(&self) -> &'a str {
+        &self.s[self.i..]
+    }
+
+    fn byte(&self) -> u8 {
+        self.s.as_bytes()[self.i]
+    }
+
+    fn starts_with(&self, pat: &str) -> bool {
+        self.rest().starts_with(pat)
+    }
+
+    fn advance(&mut self, n: usize) {
+        self.i += n;
+    }
+
+    fn take_char(&mut self) -> char {
+        let ch = self.rest().chars().next().unwrap();
+        self.advance(ch.len_utf8());
+        ch
+    }
+}
+
+fn try_code_span(cur: &mut Cursor<'_>) -> Option<Inline> {
+    if cur.byte() != b'`' {
+        return None;
+    }
+
+    let rest = cur.rest();
+    let end = rest[1..].find('`')?;
+    let code = &rest[1..1 + end];
+
+    cur.advance(1 + end + 1);
+
+    Some(Inline::CodeSpan {
+        code: code.to_string(),
+    })
+}
+
+fn try_embed(cur: &mut Cursor<'_>) -> Option<Inline> {
+    if !cur.starts_with("{{embed ") {
+        return None;
+    }
+
+    let rest = cur.rest();
+    let end = rest.find("}}")?;
+    let inner = rest["{{embed ".len()..end].trim();
+    let target = parse_embed_target(inner)?;
+
+    cur.advance(end + 2);
+    Some(Inline::Embed { target })
+}
+
+fn try_labeled_link_like(cur: &mut Cursor<'_>) -> Option<Inline> {
+    if cur.byte() != b'[' {
+        return None;
+    }
+
+    let rest = cur.rest();
+    let close_bracket = rest[1..].find(']')?;
+    let label_raw = &rest[1..1 + close_bracket];
+
+    let after = 1 + close_bracket + 1;
+    if after >= rest.len() || rest.as_bytes()[after] != b'(' {
+        return None;
+    }
+
+    let close_paren = find_matching_paren(rest, after)?;
+    let target_raw = &rest[after + 1..close_paren];
+
+    // [label]([[Page]])
+    if let Some(page) = parse_page_ref(target_raw) {
+        cur.advance(close_paren + 1);
+        return Some(Inline::Link {
+            label: tokenize_inline(label_raw),
+            url: format!("[[{}]]", page.original),
+        });
+    }
+
+    // [label](((uuid))) (we accept normal block ref patterns too)
+    if let Some(uuid) = parse_block_ref(target_raw) {
+        cur.advance(close_paren + 1);
+        return Some(Inline::Link {
+            label: tokenize_inline(label_raw),
+            url: format!("(({}))", uuid),
+        });
+    }
+
+    // standard markdown link [label](url)
+    if is_probably_url(target_raw) {
+        cur.advance(close_paren + 1);
+        return Some(Inline::Link {
+            label: tokenize_inline(label_raw),
+            url: target_raw.to_string(),
+        });
+    }
+
+    None
+}
+
+fn try_page_ref(cur: &mut Cursor<'_>) -> Option<Inline> {
+    if !cur.starts_with("[[") {
+        return None;
+    }
+
+    let rest = cur.rest();
+    let end = rest[2..].find("]]")?;
+    let inner = &rest[2..2 + end];
+
+    cur.advance(2 + end + 2);
+    Some(Inline::PageRef {
+        title: normalize_page_title(inner),
+        original: inner.to_string(),
+    })
+}
+
+fn try_block_ref(cur: &mut Cursor<'_>) -> Option<Inline> {
+    if !cur.starts_with("((") {
+        return None;
+    }
+
+    let rest = cur.rest();
+    let end = rest[2..].find("))")?;
+    let inner = rest[2..2 + end].trim();
+
+    cur.advance(2 + end + 2);
+    Some(Inline::BlockRef {
+        uuid: inner.to_string(),
+    })
+}
+
+#[allow(clippy::manual_strip)]
+fn try_tag(cur: &mut Cursor<'_>) -> Option<Inline> {
+    if cur.byte() != b'#' {
+        return None;
+    }
+
+    let rest = cur.rest();
+
+    // #[[multi word]]
+    if rest.starts_with("#[[") {
+        let end = rest[3..].find("]]")?;
+        let inner = &rest[3..3 + end];
+        cur.advance(3 + end + 2);
+        return Some(Inline::Tag {
+            title: normalize_page_title(inner),
+            original: inner.to_string(),
+        });
+    }
+
+    // #word
+    let mut j = 1usize;
+    while cur.i + j < cur.s.len() {
+        let c = cur.s[cur.i + j..].chars().next().unwrap();
+        if c.is_whitespace() {
+            break;
+        }
+        if [',', '.', ';', ':', '!', '?', ')', ']', '}', '"', '\''].contains(&c) {
+            break;
+        }
+        j += c.len_utf8();
+    }
+
+    if j <= 1 {
+        return None;
+    }
+
+    let inner = &rest[1..j];
+    cur.advance(j);
+    Some(Inline::Tag {
+        title: normalize_page_title(inner),
+        original: inner.to_string(),
+    })
 }
 
 fn parse_embed_target(inner: &str) -> Option<EmbedTarget> {
@@ -192,7 +275,7 @@ fn parse_block_ref(s: &str) -> Option<String> {
 }
 
 fn find_matching_paren(s: &str, open_idx: usize) -> Option<usize> {
-    // `open_idx` points at '(' in `s`.
+    // open_idx points at '(' in `s`.
     let mut depth = 0i32;
     let mut i = open_idx;
     while i < s.len() {
@@ -211,8 +294,7 @@ fn find_matching_paren(s: &str, open_idx: usize) -> Option<usize> {
 }
 
 fn normalize_page_title(s: &str) -> String {
-    // conservative normalization: trim only (Logseq is case-insensitive in many contexts,
-    // but we preserve original and keep title as trimmed).
+    // conservative normalization: trim only
     s.trim().to_string()
 }
 
