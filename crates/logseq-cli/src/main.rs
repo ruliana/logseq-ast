@@ -4,8 +4,11 @@ use clap::Parser;
 #[command(name = "logseq")]
 #[command(about = "Transform Logseq markdown into an AST", long_about = None)]
 struct Args {
-    /// Input markdown file path, or '-' for STDIN
-    input: String,
+    /// Input markdown file path.
+    ///
+    /// If omitted, reads from STDIN (Unix filter style).
+    /// Use "-" explicitly to force STDIN.
+    input: Option<String>,
 
     /// Output format (currently only json)
     #[arg(long, default_value = "json")]
@@ -15,13 +18,15 @@ struct Args {
 fn main() -> anyhow::Result<()> {
     let args = Args::parse();
 
-    let input = if args.input == "-" {
+    let input_arg = args.input.as_deref().unwrap_or("-");
+
+    let input = if input_arg == "-" {
         use std::io::Read;
         let mut s = String::new();
         std::io::stdin().read_to_string(&mut s)?;
         s
     } else {
-        std::fs::read_to_string(&args.input)?
+        std::fs::read_to_string(input_arg)?
     };
 
     let doc = logseq_core::parse::parse(&input).map_err(|e| anyhow::anyhow!("parse error: {e}"))?;
