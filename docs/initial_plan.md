@@ -211,7 +211,7 @@ Definition of Done for a feature:
 ## To-do (living checklist)
 
 - [x] Confirm scope: blocks are **bullet list items only**; empty lines are **not blocks**, but are preserved in the AST (currently via `blank_lines`). Non-bullet lines are continuation text of the previous block. (Properties attach to previous block)
-- [x] Decide how to represent *ordering*: use Option B (ordered `Document.items` node stream).
+- [x] Decide how to represent *ordering*: use an ordered `Document.items` node stream.
 - [x] Update AST + parser to emit explicit `BlankLine` nodes (preserve line numbers) so spacing is not lost. (Implemented as ordered `Document.items`.)
 - [x] Next: parse wiki page refs and standard URLs inside property values (e.g. `tags:: #[[Project]] #mvp`, `link:: https://...`).
 - [x] Define AST v1 schema in `logseq-core` (Document / Block / Inline / CodeBlock / Heading / Property / Marker).
@@ -227,7 +227,7 @@ Definition of Done for a feature:
   - [x] tags `#tag` and `#[[multi word]]`
   - [x] standard links `[label](url)` (simple heuristics)
   - [x] code spans `` `code` ``
-- [x] Handle fenced code blocks (```lang ... ```), preserving info string + content. (Indented fences become child blocks: Option B)
+- [x] Handle fenced code blocks (```lang ... ```), preserving info string + content. (Indented fences become child blocks)
 - [x] Parse task markers at start of block (TODO/DOING/DONE/NOW/LATER) + priorities [#A]/[#B]/[#C] if desired.
 - [x] Implement CLI:
   - [x] file path input

@@ -21,7 +21,7 @@ Working features:
   - labeled refs / links: `[label]([[Page]])`, `[label](((uuid)))`
   - standard markdown links: `[label](https://example.com)`
   - code spans: `` `code` ``
-- Fenced code blocks (```lang … ```) are parsed as **child blocks** when indented under a bullet (Option B)
+- Fenced code blocks (```lang … ```) are parsed as **child blocks** when indented under a bullet
 - Property values also get a parsed representation (`value_ast`) including wiki refs/tags/block refs + **bare URLs**
 - Blank lines are preserved as explicit nodes in the ordered top-level stream
 
