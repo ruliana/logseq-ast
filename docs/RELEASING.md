@@ -18,7 +18,7 @@ git push origin v0.1.0
 ```
 
 Pushing a tag `v*` triggers the GitHub Actions **Release** workflow, which:
-- builds `logseq-ast` for Linux (x86_64), macOS (x86_64 + Apple Silicon), and Raspberry Pi targets (armv7 + aarch64)
+- builds `logseq-ast` and `logseq-ast-to-md` for Linux (x86_64), macOS (x86_64 + Apple Silicon), and Raspberry Pi targets (armv7 + aarch64)
 - uploads `.tar.gz` archives to the GitHub Release for that tag
 
 ## CI on main
