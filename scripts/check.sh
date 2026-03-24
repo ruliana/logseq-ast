@@ -12,7 +12,15 @@ if [[ -f "$HOME/.cargo/env" ]]; then
   source "$HOME/.cargo/env"
 fi
 
+# Use a repo-local target dir to avoid filesystem permission quirks.
+export CARGO_TARGET_DIR=${CARGO_TARGET_DIR:-target-node}
+
+# Keep compilation serial in this environment.
 export CARGO_BUILD_JOBS=${CARGO_BUILD_JOBS:-1}
+
+# Work around occasional permission issues by forcing a clean writable target dir.
+rm -rf "$CARGO_TARGET_DIR"
+mkdir -p "$CARGO_TARGET_DIR"
 
 cargo fmt --all -- --check
 cargo clippy --workspace --all-targets --all-features -- -D warnings
