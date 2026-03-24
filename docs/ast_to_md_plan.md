@@ -48,11 +48,26 @@ Scenarios to cover:
 - Inline transformations (page refs, dropped tags/embeds/blockrefs)
 - Blank line handling (paragraph breaks)
 
+## Tooling (same quality gates as logseq-ast)
+
+Use the repo’s check script:
+
+```bash
+bash scripts/check.sh
+```
+
+It runs:
+- `cargo fmt --check`
+- `cargo clippy -D warnings`
+- `cargo test`
+- cyclomatic complexity (Kimün `km`) if installed
+- coverage (tarpaulin) if installed
+
 ## TODO (living)
 
-- [ ] Define `logseq-ast-to-md` crate + wire into workspace
-- [ ] Implement `render_blog_markdown(Document) -> String`
-- [ ] Add golden fixtures + tests (AST JSON → Markdown)
-- [ ] Add CLI tests (STDIN default, file input)
-- [ ] Ensure `scripts/check.sh` passes
-- [ ] Push repo updates
+- [x] Define `logseq-ast-to-md` crate + wire into workspace
+- [x] Implement `render_blog_markdown(Document) -> String`
+- [x] Add golden fixtures + tests (AST JSON → Markdown)
+- [x] Add CLI tests (STDIN default, file input)
+- [x] Ensure `scripts/check.sh` passes
+- [ ] Push repo updates (GitHub)
