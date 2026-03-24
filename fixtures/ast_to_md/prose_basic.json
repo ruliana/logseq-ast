@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "items": [
+    {
+      "type": "block",
+      "properties": [],
+      "content": [
+        { "type": "text", "value": "Hello " },
+        { "type": "page_ref", "title": "World", "original": "World" },
+        { "type": "text", "value": "" },
+        { "type": "tag", "title": "tag", "original": "tag" }
+      ],
+      "children": [
+        {
+          "type": "block",
+          "properties": [],
+          "content": [
+            { "type": "text", "value": "child sentence" },
+            { "type": "block_ref", "uuid": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee" },
+            { "type": "text", "value": " and " },
+            { "type": "embed", "target": { "type": "page_ref", "title": "X", "original": "X" } }
+          ],
+          "children": [],
+          "line": 2
+        }
+      ],
+      "line": 1
+    }
+  ]
+}

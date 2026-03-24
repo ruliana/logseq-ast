@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "items": [
+    {
+      "type": "block",
+      "properties": [],
+      "content": [
+        { "type": "text", "value": "Items:" }
+      ],
+      "children": [
+        {
+          "type": "block",
+          "properties": [],
+          "content": [
+            { "type": "text", "value": "First" }
+          ],
+          "children": [
+            {
+              "type": "block",
+              "properties": [],
+              "content": [
+                { "type": "text", "value": "Nested" }
+              ],
+              "children": [],
+              "line": 3
+            }
+          ],
+          "line": 2
+        },
+        {
+          "type": "block",
+          "properties": [],
+          "content": [
+            { "type": "text", "value": "Second!" }
+          ],
+          "children": [],
+          "line": 4
+        }
+      ],
+      "line": 1
+    }
+  ]
+}

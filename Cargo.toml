@@ -3,6 +3,7 @@ resolver = "2"
 members = [
   "crates/logseq-core",
   "crates/logseq-cli",
+  "crates/logseq-ast-to-md",
 ]
 
 [workspace.package]
