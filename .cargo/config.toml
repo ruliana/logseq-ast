@@ -1,3 +1,0 @@
-[build]
-# Avoid writing to a root-owned `target/` directory in this environment.
-target-dir = "target-node"
